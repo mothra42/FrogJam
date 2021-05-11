@@ -14,6 +14,19 @@ enum class ECharacterTransformState : uint8
 	FinalBossFight
 };
 
+UENUM(BlueprintType)
+enum class ECharacterDirection : uint8
+{
+	North,
+	Northwest,
+	Northeast,
+	East,
+	West,
+	South,
+	Southwest,
+	Southeast
+};
+
 UCLASS(Blueprintable)
 class AFrogJamCharacter : public ACharacter
 {
@@ -31,9 +44,18 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float MoveSpeed = 50.f;
+	float MoveSpeed = 200.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float JumpPower = 50.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Life")
+	float Life = 100.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Transformation")
+	float TransformationLevel = 0.f;
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	ECharacterDirection CharacterDirection = ECharacterDirection::South;
+	//projectile Type
+	UPROPERTY(Category = Projectile, EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<class AFrogProjectile> ProjectileClass;
 
 	ECharacterTransformState GetCharacterTransformState();
 
@@ -44,6 +66,17 @@ public:
 	void UseTongue();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Attack")
 	void SpitToad();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Attack")
+	void OnTransform(ECharacterTransformState NewTransformState);
+
+	UFUNCTION(BlueprintCallable)
+	float TakeDamage(float DamageToTake);
+
+	UFUNCTION(BlueprintCallable)
+	float ConsumeAmphibian(float TransformationValue, class AAmphibian* AmphibianToConsume);
+
+	void ChangeCharacterDirection(float RightValue, float ForwardValue);
 
 private:
 	/** Top down camera */

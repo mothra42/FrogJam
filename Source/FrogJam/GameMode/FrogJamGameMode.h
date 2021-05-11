@@ -11,8 +11,19 @@ class AFrogJamGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
+	virtual void BeginPlay() override;
+
 public:
 	AFrogJamGameMode();
+
+	FTimerHandle GameLengthTimerHandle;
+
+	float DefaultGameLength = 300.f;
+
+	void EndGame();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "GameOver")
+	bool bIsGameWon = false;
 };
 
 

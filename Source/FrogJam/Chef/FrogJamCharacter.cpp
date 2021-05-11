@@ -8,6 +8,10 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
+#include "../GameMode/FrogJamGameMode.h"
+#include "../Amphibians/Amphibian.h"
+#include "../Projectiles/FrogProjectile.h"
+#include "Kismet/GameplayStatics.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
 
@@ -53,4 +57,74 @@ void AFrogJamCharacter::Tick(float DeltaSeconds)
 ECharacterTransformState AFrogJamCharacter::GetCharacterTransformState()
 {
 	return TransformState;
+}
+
+float AFrogJamCharacter::TakeDamage(float DamageToTake)
+{
+	Life -= DamageToTake;
+	if (Life <= 0)
+	{
+		AFrogJamGameMode* GameMode = Cast<AFrogJamGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		if (GameMode != nullptr)
+		{
+			GameMode->EndGame();
+		}
+	}
+	return Life;
+}
+
+float AFrogJamCharacter::ConsumeAmphibian(float TransformationValue, AAmphibian* AmphibianToConsume)
+{
+	TransformationLevel += TransformationValue;
+	AmphibianToConsume->EndLife();
+
+	//TODO encode these values in vars
+	if (TransformationLevel >= 120.f && TransformState != ECharacterTransformState::FinalBossFight)
+	{
+		TransformState = ECharacterTransformState::FinalBossFight;
+		OnTransform(TransformState);
+	}
+	else if (TransformationLevel >= 60.f && TransformState != ECharacterTransformState::FinalBossFight && TransformState != ECharacterTransformState::Transformed)
+	{
+		TransformState = ECharacterTransformState::Transformed;
+		OnTransform(TransformState);
+	}
+
+	return TransformationLevel;
+}
+
+void AFrogJamCharacter::ChangeCharacterDirection(float RightValue, float ForwardValue)
+{
+	if (RightValue == 0 && ForwardValue > 0)
+	{
+		CharacterDirection = ECharacterDirection::North;
+	}
+	else if (RightValue > 0 && ForwardValue == 0)
+	{
+		CharacterDirection = ECharacterDirection::East;
+	}
+	else if (RightValue == 0 && ForwardValue < 0)
+	{
+		CharacterDirection = ECharacterDirection::South;
+	}
+	else if (RightValue < 0 && ForwardValue == 0)
+	{
+		CharacterDirection = ECharacterDirection::West;
+	}
+	else if (RightValue > 0 && ForwardValue > 0)
+	{
+		CharacterDirection = ECharacterDirection::Northeast;
+	}
+	else if (RightValue > 0 && ForwardValue < 0)
+	{
+		CharacterDirection = ECharacterDirection::Southeast;
+	}
+	else if (RightValue < 0 && ForwardValue < 0)
+	{
+		CharacterDirection = ECharacterDirection::Southwest;
+	}
+	else if (RightValue < 0 && ForwardValue > 0)
+	{
+		CharacterDirection = ECharacterDirection::Northwest;
+	}
 }
